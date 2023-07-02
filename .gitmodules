@@ -7,3 +7,6 @@
 [submodule "lib/ketherhomepage"]
 	path = lib/ketherhomepage
 	url = https://github.com/thousandetherhomepage/ketherhomepage
+[submodule "lib/base64"]
+	path = lib/base64
+	url = https://github.com/Brechtpd/base64
