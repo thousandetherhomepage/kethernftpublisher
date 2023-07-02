@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-contracts/contracts/utils/Context.sol";
+import { IERC721 } from "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import { Context } from "openzeppelin-contracts/contracts/utils/Context.sol";
 
 interface IKetherNFTPublish {
   event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
