@@ -19,7 +19,7 @@ interface IKetherSortition {
 
 library Errors {
   string constant MustApprovePublisher = "KetherNFTPublisher must be approved";
-  string constant MustBeApproved = "sender must be approved publisher";
+  string constant SenderNotApproved = "sender must be approved publisher";
   string constant OwnerChanged = "owner changed since approved";
 }
 
@@ -157,7 +157,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
    * @dev See {KetherNFT-publish}.
    */
   function publish(uint _idx, string calldata _link, string calldata _image, string calldata _title, bool _NSFW) external {
-      require(isApprovedToPublish(_msgSender(), _idx), Errors.MustBeApproved);
+      require(isApprovedToPublish(_msgSender(), _idx), Errors.SenderNotApproved);
 
       IKetherNFTPublish(address(ketherNFT)).publish(_idx, _link, _image, _title, _NSFW);
   }

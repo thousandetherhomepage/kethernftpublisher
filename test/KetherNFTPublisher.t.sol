@@ -30,8 +30,8 @@ contract KetherNFTPublisherTest is Test {
 
   address sender;
 
-  bytes constant ErrMustBeApproved = bytes(Errors.MustBeApproved);
-  bytes constant ErrPublisherNotApproved = bytes("KetherNFT: publish for sender that is not approved");
+  bytes constant ErrMustBeApproved = bytes(Errors.SenderNotApproved);
+  bytes constant ErrPublisherNotApproved = bytes(Errors.MustApprovePublisher);
   uint256 constant pixelPrice = 100 * 1000000000000000;
 
   function setUp() public {
