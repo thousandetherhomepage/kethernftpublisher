@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 
-import { KetherNFTPublisher, IKetherNFTPublish, IKetherSortition, Errors } from "../contracts/KetherNFTPublisher.sol";
+import { KetherNFTPublisher, IKetherNFTPublish, IKetherSortition, Errors } from "../src/KetherNFTPublisher.sol";
 
-import { KetherNFT } from "../contracts/KetherNFT.sol";
-import { KetherHomepageV2 } from "../contracts/KetherHomepageV2.sol";
-import { IKetherHomepage } from "../contracts/IKetherHomepage.sol";
+import { KetherNFT } from "ketherhomepage/KetherNFT.sol";
+import { KetherHomepageV2 } from "ketherhomepage/KetherHomepageV2.sol";
+import { IKetherHomepage } from "ketherhomepage/IKetherHomepage.sol";
 
 // MockSortition where anyone can change the magistrate, for testing.
 contract MockSortition is IKetherSortition {
