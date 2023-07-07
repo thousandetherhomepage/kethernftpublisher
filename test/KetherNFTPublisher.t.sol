@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
@@ -64,6 +64,17 @@ contract KetherNFTPublisherTest is Test {
     assertTrue(publisher.isApprovedToPublish(sender, idx), "owner should be approved after publish contract is");
   }
 
+  function test_CheckMagistrateApproval() public {
+    uint256 idx = 0;
+    address magistrate = address(0xabcd);
+
+    nft.setApprovalForAll(address(publisher), true);
+    publisher.setApprovalForAll(address(sortition), true);
+    sortition.setMagistrate(magistrate);
+
+    assertTrue(publisher.isApprovedToPublish(magistrate, idx));
+  }
+
   function test_PublishAsApproved() public {
     uint256 idx = 0;
     nft.publish(idx, "hi", "", "", false);
@@ -111,9 +122,9 @@ contract KetherNFTPublisherTest is Test {
 
   function test_PublishAsMagistrate() public {
     address magistrate = address(0xabcd);
-    assertEq(nft.ownerOf(0), sender);
 
     // Allow publisher to manage our NFTs
+    vm.prank(sender);
     nft.setApprovalForAll(address(publisher), true);
 
     uint256 idx = 0;
@@ -136,6 +147,7 @@ contract KetherNFTPublisherTest is Test {
     publisher.publish(idx, "foo", "", "", false);
 
     // Approve magistrate, but caller is not magistrate yet
+    vm.prank(sender);
     publisher.setApprovalForAll(address(sortition), true);
 
     assertTrue(publisher.isApprovedToPublish(sortition.getMagistrate(), idx), "actual magistrate should pass");
@@ -145,6 +157,7 @@ contract KetherNFTPublisherTest is Test {
     vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
 
+
     // Update magistrate, should pass now
     sortition.setMagistrate(magistrate);
     assertTrue(publisher.isApprovedToPublish(magistrate, idx));
@@ -152,14 +165,12 @@ contract KetherNFTPublisherTest is Test {
     vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
     assertEq(_getLink(idx), "foo");
-
-    console.log("XXX");
-
+  
     sortition.setMagistrate(address(0x0));
     vm.expectRevert(bytes(Errors.SenderNotApproved));
     vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
-
+  
     assertTrue(publisher.isApprovedToPublish(sortition.getMagistrate(), idx));
     assertFalse(publisher.isApprovedToPublish(magistrate, idx));
   }
