@@ -30,8 +30,6 @@ contract KetherNFTPublisherTest is Test {
 
   address sender;
 
-  bytes constant ErrMustBeApproved = bytes(Errors.SenderNotApproved);
-  bytes constant ErrPublisherNotApproved = bytes(Errors.MustApprovePublisher);
   uint256 constant pixelPrice = 100 * 1000000000000000;
 
   function setUp() public {
@@ -55,12 +53,23 @@ contract KetherNFTPublisherTest is Test {
     return link;
   }
 
+  function test_CheckOwnerApproved() public {
+    uint idx = 0;
+    assertEq(nft.ownerOf(idx), sender);
+
+    vm.expectRevert(bytes(Errors.MustApprovePublisher));
+    assertFalse(publisher.isApprovedToPublish(sender, idx), "owner should not be approved until publish contract is");
+
+    nft.setApprovalForAll(address(publisher), true);
+    assertTrue(publisher.isApprovedToPublish(sender, idx), "owner should be approved after publish contract is");
+  }
+
   function test_PublishAsApproved() public {
     uint256 idx = 0;
     nft.publish(idx, "hi", "", "", false);
     assertEq(_getLink(idx), "hi");
 
-    vm.expectRevert(ErrPublisherNotApproved);
+    vm.expectRevert(bytes(Errors.MustApprovePublisher));
     publisher.publish(idx, "foo", "", "", false);
 
     // Approved for just idx=0
@@ -70,12 +79,12 @@ contract KetherNFTPublisherTest is Test {
 
     // Not approved for other tokens
     idx = 1;
-    vm.expectRevert(ErrPublisherNotApproved);
+    vm.expectRevert(bytes(Errors.MustApprovePublisher));
     publisher.publish(idx, "bar", "", "", false);
 
     // Remove approval
     nft.approve(address(0x0), idx);
-    vm.expectRevert(ErrPublisherNotApproved);
+    vm.expectRevert(bytes(Errors.MustApprovePublisher));
     publisher.publish(idx, "bar", "", "", false);
   }
 
@@ -96,44 +105,59 @@ contract KetherNFTPublisherTest is Test {
     // Remove approval
     nft.setApprovalForAll(address(publisher), false);
 
-    vm.expectRevert(ErrPublisherNotApproved);
+    vm.expectRevert(bytes(Errors.MustApprovePublisher));
     publisher.publish(idx, "bar", "", "", false);
   }
 
   function test_PublishAsMagistrate() public {
-    address magistrate = address(sender);
+    address magistrate = address(0xabcd);
+    assertEq(nft.ownerOf(0), sender);
 
     // Allow publisher to manage our NFTs
     nft.setApprovalForAll(address(publisher), true);
 
-    assertFalse(publisher.isApprovedToPublish(address(0x1234), 1), "0x1234 should fail");
-
     uint256 idx = 0;
-    vm.expectRevert(ErrMustBeApproved);
-    publisher.publish(idx, "foo", "", "", false);
 
-    assertFalse(publisher.isApprovedToPublish(sender, idx), "sender should fail");
-    assertFalse(publisher.isApprovedToPublish(sortition.getMagistrate(), idx), "magistrate should fail");
+    assertFalse(
+        publisher.isApprovedToPublish(magistrate, idx),
+        "magistrate should fail idx=0");
+
+    assertTrue(
+        publisher.isApprovedToPublish(sender, idx),
+        "sender should be approved");
+
+    assertEq(sortition.getMagistrate(), address(0x0), "magistrate should start unset");
+    assertFalse(
+        publisher.isApprovedToPublish(magistrate, idx),
+        "magistrate should fail until sortition is approved");
+
+    vm.expectRevert(bytes(Errors.SenderNotApproved));
+    vm.prank(magistrate);
+    publisher.publish(idx, "foo", "", "", false);
 
     // Approve magistrate, but caller is not magistrate yet
-    nft.setApprovalForAll(address(sortition), true);
-    vm.expectRevert(ErrMustBeApproved);
-    publisher.publish(idx, "foo", "", "", false);
+    publisher.setApprovalForAll(address(sortition), true);
 
     assertTrue(publisher.isApprovedToPublish(sortition.getMagistrate(), idx), "actual magistrate should pass");
     assertFalse(publisher.isApprovedToPublish(magistrate, idx), "future magistrate should fail");
 
+    vm.expectRevert(bytes(Errors.SenderNotApproved));
+    vm.prank(magistrate);
+    publisher.publish(idx, "foo", "", "", false);
+
     // Update magistrate, should pass now
     sortition.setMagistrate(magistrate);
+    assertTrue(publisher.isApprovedToPublish(magistrate, idx));
+
+    vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
     assertEq(_getLink(idx), "foo");
 
-    assertTrue(publisher.isApprovedToPublish(magistrate, idx));
-
-    console.log("a");
+    console.log("XXX");
 
     sortition.setMagistrate(address(0x0));
-    vm.expectRevert(ErrMustBeApproved);
+    vm.expectRevert(bytes(Errors.SenderNotApproved));
+    vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
 
     assertTrue(publisher.isApprovedToPublish(sortition.getMagistrate(), idx));
