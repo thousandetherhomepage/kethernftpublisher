@@ -165,12 +165,12 @@ contract KetherNFTPublisherTest is Test {
     vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
     assertEq(_getLink(idx), "foo");
-  
+
     sortition.setMagistrate(address(0x0));
     vm.expectRevert(bytes(Errors.SenderNotApproved));
     vm.prank(magistrate);
     publisher.publish(idx, "foo", "", "", false);
-  
+
     assertTrue(publisher.isApprovedToPublish(sortition.getMagistrate(), idx));
     assertFalse(publisher.isApprovedToPublish(magistrate, idx));
   }
