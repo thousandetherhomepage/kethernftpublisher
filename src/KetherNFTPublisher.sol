@@ -74,7 +74,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
     /// Seconds required between publishes.
     uint256 public publishTimeout = 0;
 
-    mapping(uint256 => uint256) private _timeouts;
+    mapping(uint256 => uint256) private _tokenToPublishTimestamp;
 
     constructor(address _ketherNFTContract, address _ketherSortitionContract) {
       ketherNFT = IERC721(_ketherNFTContract);
@@ -181,10 +181,10 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
 
         // Check timeout
         if (publishTimeout > 0) {
-            if (_timeouts[_idx] + publishTimeout > block.timestamp) {
+            if (_tokenToPublishTimestamp[_idx] + publishTimeout > block.timestamp) {
                 revert(Errors.MustTimeout);
             }
-            _timeouts[_idx] = block.timestamp + publishTimeout;
+            _tokenToPublishTimestamp[_idx] = block.timestamp;
         }
 
         // Check fee
@@ -219,7 +219,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
      * @notice Magistrate can set the timeout between publishes of the same token.
      * @param _seconds Number of seconds required between publishes per token.
      */
-    function setTimeout(uint256 _seconds) external {
+    function setPublishTimeout(uint256 _seconds) external {
         // Sender must be current magistrate
         address magistrate = ketherSortition.getMagistrate();
         if (_msgSender() != magistrate) {

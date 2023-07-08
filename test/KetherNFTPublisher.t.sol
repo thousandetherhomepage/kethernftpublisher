@@ -226,4 +226,44 @@ contract KetherNFTPublisherTest is Test {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
         publisher.publish(idx, "bar", "", "", false);
     }
+
+    function test_PublishWithTimeout() public {
+        uint256 idx = 0;
+        vm.warp(1000); // Making sure we're not starting at <timeout
+
+        // Allow magistrate to manage our NFTs
+        nft.setApprovalForAll(address(publisher), true);
+        publisher.setApprovalForAll(address(sortition), true);
+
+        // Non-magistrate tries to change settings
+        vm.expectRevert(bytes(Errors.MustBeMagistrate));
+        publisher.setPublishTimeout(42);
+
+        // Set timeout as magistrate
+        address magistrate = address(0xabcd);
+        sortition.setMagistrate(magistrate);
+        vm.startPrank(magistrate);
+        publisher.setPublishTimeout(42);
+
+        // Publish, timeout starts
+        publisher.publish(idx, "foo", "", "", false);
+        assertEq(_getLink(idx), "foo");
+
+        // Publish, timeout triggers
+        vm.expectRevert(bytes(Errors.MustTimeout));
+        publisher.publish(idx, "bar", "", "", false);
+
+        // Publish, after timeout
+        vm.warp(block.timestamp + 43);
+        publisher.publish(idx, "bar", "", "", false);
+
+        // Publish, after waiting a bit but not enough
+        vm.warp(block.timestamp + 25);
+        vm.expectRevert(bytes(Errors.MustTimeout));
+        publisher.publish(idx, "bar", "", "", false);
+
+        // Reduce timeout, but no more waiting
+        publisher.setPublishTimeout(15);
+        publisher.publish(idx, "baz", "", "", false);
+    }
 }
