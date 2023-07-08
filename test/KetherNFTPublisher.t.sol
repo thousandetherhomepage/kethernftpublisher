@@ -3,6 +3,8 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
+import { ERC20 } from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+
 import { KetherNFTPublisher, IKetherNFTPublish, IKetherSortition, Errors } from "../src/KetherNFTPublisher.sol";
 
 import { KetherNFT } from "ketherhomepage/KetherNFT.sol";
@@ -175,5 +177,53 @@ contract KetherNFTPublisherTest is Test {
         assertFalse(publisher.isApprovedToPublish(magistrate, idx));
     }
 
+    function test_PublishWithFee() public {
+        uint256 idx = 0;
+        ERC20 feeToken = new ERC20("SomeToken", "TOK");
 
+        address magistrate = address(0xabcd);
+        sortition.setMagistrate(magistrate);
+        deal(address(feeToken), magistrate, 1621);
+        assertEq(feeToken.balanceOf(magistrate), 1621);
+
+        // Allow magistrate to manage our NFTs
+        nft.setApprovalForAll(address(publisher), true);
+        publisher.setApprovalForAll(address(sortition), true);
+
+        // Non-magistrate tries to change settings
+        vm.expectRevert(bytes(Errors.MustBeMagistrate));
+        publisher.setPublishFee(address(feeToken), 42);
+
+        vm.startPrank(magistrate);
+
+        // Token fee not set yet, works without approved balance
+        publisher.publish(idx, "foo", "", "", false);
+
+        // Set token fee as magistrate
+        publisher.setPublishFee(address(feeToken), 42);
+
+        vm.expectRevert("ERC20: insufficient allowance");
+        publisher.publish(idx, "hi", "", "", false);
+
+        feeToken.approve(address(publisher), 1000);
+        publisher.publish(idx, "hi", "", "", false);
+
+        assertEq(feeToken.balanceOf(magistrate), 1621 - 42);
+        assertEq(feeToken.balanceOf(nft.ownerOf(idx)), 42);
+
+        // Owner should get fee back
+        vm.startPrank(nft.ownerOf(idx));
+        feeToken.approve(address(publisher), 1000);
+        publisher.publish(idx, "bar", "", "", false);
+        assertEq(feeToken.balanceOf(nft.ownerOf(idx)), 42);
+
+        // New magistrate shows up without tokens
+        address newMagistrate = address(0x1234);
+        sortition.setMagistrate(newMagistrate);
+        vm.startPrank(newMagistrate);
+
+        feeToken.approve(address(publisher), 1000);
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        publisher.publish(idx, "bar", "", "", false);
+    }
 }
