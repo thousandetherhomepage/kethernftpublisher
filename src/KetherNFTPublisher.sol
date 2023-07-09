@@ -138,7 +138,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
         address owner = ketherNFT.ownerOf(tokenId); // Implicitly checks tokenId validity
         address approved = ketherNFT.getApproved(tokenId);
 
-        // Is this contract approved to control publishers?
+        // This contract must be either approved to publish for the token or approved for all tokens of the owner.
         if (!ketherNFT.isApprovedForAll(owner, address(this)) &&
             approved != address(this)
         ) {
