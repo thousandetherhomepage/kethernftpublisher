@@ -99,7 +99,7 @@ async function onConnect() {
     const settings = { chainId, ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount, ketherNFTPublisher: deploy.ketherNFTPublisherAddress };
     console.log("Loaded contract settings:", settings);
 
-    document.querySelector('publisher-settings').update(settings);
+    document.querySelector('publisher-contract').update(settings);
 }
 
 watchNetwork(onConnect);

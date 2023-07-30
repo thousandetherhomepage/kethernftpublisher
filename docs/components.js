@@ -1,8 +1,9 @@
-customElements.define('publisher-settings',
-    class PublisherSettings extends HTMLElement {
+customElements.define('publisher-contract',
+    class PublisherContract extends HTMLElement {
         constructor() {
             super();
             this.element = this.attachShadow({ mode: 'open' });
+            this.element.innerHTML = "Waiting for wallet to connect...";
             this.settings = null;
             this.render();
         }
@@ -37,6 +38,10 @@ customElements.define('publisher-settings',
                   </ul>
                   ${extra}
               </div>
+
+              <div>
+                <manage-publisher />
+              </div>
             `;
         }
     });
@@ -59,6 +64,8 @@ customElements.define('manage-publisher',
         render() {
             this.element.innerHTML = `
                 <form>
+                  <h2>Manage Publisher Approvals</h2>
+
                   <p>Approve address to publish to tokenId. Only one approval can exist per tokenId at a time. To remove approval, submit 0x0 address for that tokenId.
                   <div>
                       <input type="text" name="to" placeholder="to address" size="32" value="${this.data.ketherSortition || ''}" />
