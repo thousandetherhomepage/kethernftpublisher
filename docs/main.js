@@ -10,7 +10,7 @@ import {
 import { Web3Modal } from "https://unpkg.com/@web3modal/html@2.6.1";
 
 const { mainnet, sepolia } = WagmiCoreChains;
-const { configureChains, createConfig, watchAccount, getContract, getWalletClient } = WagmiCore;
+const { configureChains, createConfig, watchAccount, getWalletClient, multicall, parseAbi } = WagmiCore;
 
 const config = {
     walletConnectProjectID: "c2b10083c2b1bda11734bd4f48101899",
@@ -24,18 +24,18 @@ const config = {
         }
     },
     abi: [
-        'function approve(address to, uint256 tokenId)',
-        'function getApproved(uint256 tokenId) view returns (address)',
-        'function isApprovedForAll(address owner, address operator) view returns (bool)',
-        'function isApprovedToPublish(address publisher, uint256 tokenId) view returns (bool)',
-        'function ketherNFT() view returns (address)',
-        'function ketherSortition() view returns (address)',
-        'function publish(uint256 _idx, string _link, string _image, string _title, bool _NSFW)',
-        'function publishFeeAmount() view returns (uint256)',
-        'function publishFeeToken() view returns (address)',
-        'function publishTimeout() view returns (uint256)',
-        'function setApprovalForAll(address operator, bool approved)',
-    ]
+        {"type":"function","name":"approve","constant":false,"payable":false,"inputs":[{"type":"address","name":"to"},{"type":"uint256","name":"tokenId"}],"outputs":[]},
+        {"type":"function","name":"getApproved","constant":true,"stateMutability":"view","payable":false,"inputs":[{"type":"uint256","name":"tokenId"}],"outputs":[{"type":"address"}]},
+        {"type":"function","name":"isApprovedForAll","constant":true,"stateMutability":"view","payable":false,"inputs":[{"type":"address","name":"owner"},{"type":"address","name":"operator"}],"outputs":[{"type":"bool"}]},
+        {"type":"function","name":"isApprovedToPublish","constant":true,"stateMutability":"view","payable":false,"inputs":[{"type":"address","name":"publisher"},{"type":"uint256","name":"tokenId"}],"outputs":[{"type":"bool"}]},
+        {"type":"function","name":"ketherNFT","constant":true,"stateMutability":"view","payable":false,"inputs":[],"outputs":[{"type":"address"}]},
+        {"type":"function","name":"ketherSortition","constant":true,"stateMutability":"view","payable":false,"inputs":[],"outputs":[{"type":"address"}]},
+        {"type":"function","name":"publish","constant":false,"payable":false,"inputs":[{"type":"uint256","name":"_idx"},{"type":"string","name":"_link"},{"type":"string","name":"_image"},{"type":"string","name":"_title"},{"type":"bool","name":"_NSFW"}],"outputs":[]},
+        {"type":"function","name":"publishFeeAmount","constant":true,"stateMutability":"view","payable":false,"inputs":[],"outputs":[{"type":"uint256"}]},
+        {"type":"function","name":"publishFeeToken","constant":true,"stateMutability":"view","payable":false,"inputs":[],"outputs":[{"type":"address"}]},
+        {"type":"function","name":"publishTimeout","constant":true,"stateMutability":"view","payable":false,"inputs":[],"outputs":[{"type":"uint256"}]},
+        {"type":"function","name":"setApprovalForAll","constant":false,"payable":false,"inputs":[{"type":"address","name":"operator"},{"type":"bool","name":"approved"}],"outputs":[]},
+    ],
 }
 
 const chains = [mainnet, sepolia];
@@ -65,7 +65,7 @@ export const web3modal = new Web3Modal(
 );
 
 async function onConnect({address}) {
-    console.debug("Connected", address);
+    console.log("Connected", address);
 
     const walletClient = await getWalletClient();
     const chainId = await walletClient.getChainId();
@@ -75,14 +75,27 @@ async function onConnect({address}) {
         throw "Unsupported chain: " + chainId;
     }
 
-    console.debug("Loaded chain config", deploy);
+    console.log("Loaded chain config", deploy);
 
-    const contract = await getContract({
+    const contract = {
         address: deploy.ketherNFTPublisherAddress,
         abi: config.abi,
+        chainId,
         walletClient,
-    })
-    console.debug("XXX", contract);
+    };
+
+    const [ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount] = (await multicall({
+        contracts: [
+            { ...contract, functionName: 'ketherNFT', },
+            { ...contract, functionName: 'ketherSortition', },
+            { ...contract, functionName: 'publishTimeout', },
+            { ...contract, functionName: 'publishFeeToken', },
+            { ...contract, functionName: 'publishFeeAmount', },
+        ],
+    })).map(r => r.result);
+
+    const settings = { ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount };
+    console.log("Loaded contract settings:", settings);
 }
 
 watchAccount(async function(state) {
