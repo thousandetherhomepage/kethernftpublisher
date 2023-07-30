@@ -9,8 +9,10 @@ import {
 
 import { Web3Modal } from "https://unpkg.com/@web3modal/html@2.6.1";
 
+import "./components.js";
+
 const { mainnet, sepolia } = WagmiCoreChains;
-const { configureChains, createConfig, watchAccount, getWalletClient, multicall, parseAbi } = WagmiCore;
+const { configureChains, createConfig, watchAccount, watchNetwork, getWalletClient, multicall} = WagmiCore;
 
 const config = {
     walletConnectProjectID: "c2b10083c2b1bda11734bd4f48101899",
@@ -64,11 +66,11 @@ export const web3modal = new Web3Modal(
     ethereumClient
 );
 
-async function onConnect({address}) {
-    console.log("Connected", address);
-
+async function onConnect() {
     const walletClient = await getWalletClient();
+    const [address] = await walletClient.getAddresses();
     const chainId = await walletClient.getChainId();
+    console.log("Connected", {address, chainId});
 
     const deploy = config.deployed[chainId];
     if (deploy === undefined) {
@@ -94,12 +96,10 @@ async function onConnect({address}) {
         ],
     })).map(r => r.result);
 
-    const settings = { ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount };
+    const settings = { chainId, ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount };
     console.log("Loaded contract settings:", settings);
+
+    document.querySelector('publisher-settings').update(settings);
 }
 
-watchAccount(async function(state) {
-    if (state.isConnected) {
-        await onConnect(state);
-    }
-});
+watchNetwork(onConnect);
