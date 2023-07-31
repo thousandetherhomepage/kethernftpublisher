@@ -26,7 +26,12 @@ customElements.define('publisher-messages',
                 })
                 .join('');
 
-            this.element.innerHTML = `<ul>${items}</ul>`;
+            this.element.innerHTML = `
+                <style>
+                .error { color: red; }
+                .success { color: green; }
+                </style>
+                <ul>${items}</ul>`;
         }
     });
 
@@ -100,39 +105,73 @@ customElements.define('manage-publisher',
 
         render() {
             this.element.innerHTML = `
-                <form>
+                <div>
                   <h2>Manage Publisher Approvals</h2>
 
-                  <publisher-messages />
-
-                  <p>Approve address to publish to tokenId. Only one approval can exist per tokenId at a time. To remove approval, submit 0x0 address for that tokenId.
                   <div>
+                      <publisher-messages />
+                  </div>
+
+                  <form name="approve">
+                      <p>Approve address to publish to tokenId. Only one approval can exist per tokenId at a time. To remove approval, submit 0x0 address for that tokenId. Approve the sortition contract to delegate to magistrate.</p>
+
                       <input type="text" name="to" placeholder="to address" size="40" value="${this.data.ketherSortition || ''}" />
                       <input type="text" name="tokenId" placeholder="42" size="4" />
                       <input type="submit" value="Approve">
-                  </div>
-                </form>
+                  </form>
+
+                  <form name="setApprovalForAll">
+                      <p>Approve address for all owned tokens. Uncheck to remove approval.</p>
+
+                      <input type="text" name="to" placeholder="to address" size="40" value="${this.data.ketherSortition || ''}" />
+                      <input type="checkbox" name="value" checked />
+                      <input type="submit" value="setApprovalForAll">
+                  </form>
+                </div>
             `;
 
-            this.element.querySelector('form').addEventListener('submit', this.onSubmit.bind(this));
+            this.element.querySelector('form[name=approve]').addEventListener('submit', this.onSubmitApprove.bind(this));
+            this.element.querySelector('form[name=setApprovalForAll]').addEventListener('submit', this.onSubmitApproveAll.bind(this));
         }
 
-        async onSubmit(event) {
+        async onSubmitApprove(event) {
             event.preventDefault();
-            const to = this.element.querySelector('input[name=to]').value;
-            const tokenId = this.element.querySelector('input[name=tokenId]').value;
+            const form = event.target;
+            const to = form.querySelector('input[name=to]').value;
+            const tokenId = form.querySelector('input[name=tokenId]').value;
 
-            this.element.querySelector('input[type=submit]').disabled = true;
+            form.querySelector('input[type=submit]').disabled = true;
 
             try {
                 const hash = await this.methods.approve(to, tokenId);
                 console.log("Submitted:", {to, tokenId}, hash);
-                this.element.querySelector('publisher-messages').replace(['success', hash]);
+                this.element.querySelector('publisher-messages').replace(['success', 'Submitted approve: ' + hash]);
             } catch (err) {
                 console.error(err);
                 this.element.querySelector('publisher-messages').append(['error', err.toString()]);
+            } finally {
+                form.querySelector('input[type=submit]').disabled = false;
             }
+        }
 
+        async onSubmitApproveAll(event) {
+            event.preventDefault();
+            const form = event.target;
+            const to = form.querySelector('input[name=to]').value;
+            const value = form.querySelector('input[name=value]').checked;
+
+            form.querySelector('input[type=submit]').disabled = true;
+
+            try {
+                const hash = await this.methods.setApprovalForAll(to, value);
+                console.log("Submitted:", {to, value}, hash);
+                this.element.querySelector('publisher-messages').replace(['success', 'Submitted setApprovalForAll: ' + hash]);
+            } catch (err) {
+                console.error(err);
+                this.element.querySelector('publisher-messages').append(['error', err.toString()]);
+            } finally {
+                form.querySelector('input[type=submit]').disabled = false;
+            }
         }
     });
 
