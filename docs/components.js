@@ -1,23 +1,31 @@
+function emit(name, detail) {
+  const event = new CustomEvent(name, { detail, bubbles: true, composed: true });
+  this.dispatchEvent(event);
+}
+
+const store = {
+    messages: [],
+};
+
 customElements.define('publisher-messages',
     class PublisherMessages extends HTMLElement {
         constructor() {
             super();
             this.element = this.attachShadow({ mode: 'open' });
-            this.messages = [];
             this.render();
         }
         append(msg) {
-            this.messages.push(msg);
+            store.messages.push(msg);
             this.render();
         }
         replace(msg) {
-            this.messages = [msg];
+            store.messages = [msg];
             this.render();
         }
         render() {
-            if (this.messages.length === 0) return;
+            if (store.messages.length === 0) return;
 
-            const items = this.messages
+            const items = store.messages
                 .map(function (value) {
                     // Check if string
                     if (typeof value === "string") return `<li>${value}</li>`
@@ -104,6 +112,10 @@ customElements.define('manage-publisher',
         }
 
         render() {
+            const magistrateExtra = this.data.isSortitionApproved ?
+                `<p>👑 status: ✅ Sortition magistrate is approved to publish to all tokens on your behalf.</p>` :
+                `<p>👑 status: ❌ Sortition magistrate is not approved.</p>`;
+
             this.element.innerHTML = `
                 <style>
                     form { border-left: 5px solid rgba(1,1,1,0.1); padding-left: 1em; margin-bottom: 2em;}
@@ -142,6 +154,7 @@ customElements.define('manage-publisher',
                       <input type="text" name="to" placeholder="to address" size="40" value="${this.data.ketherSortition || ''}" />
                       <input type="checkbox" name="value" checked />
                       <input type="submit" value="setApprovalForAll">
+                      ${magistrateExtra}
                   </form>
                 </div>
             `;
@@ -158,12 +171,12 @@ customElements.define('manage-publisher',
 
             try {
                 const {hash} = await this.methods.approvePublisher();
-                console.log("Submitted:", hash);
-                this.element.querySelector('publisher-messages').replace(['success', 'Submitted approval for publisher: ' + hash]);
+                console.log("Submitted", hash);
+                emit.call(this, "update", {hash});
+                this.element.querySelector('publisher-messages').replace(['success', 'Submitted approval for publisher, waiting for transacton: ' + hash]);
             } catch (err) {
                 console.error(err);
                 this.element.querySelector('publisher-messages').append(['error', err.toString()]);
-            } finally {
                 form.querySelector('input[type=submit]').disabled = false;
             }
         }
@@ -178,12 +191,12 @@ customElements.define('manage-publisher',
 
             try {
                 const {hash} = await this.methods.approve(to, tokenId);
-                console.log("Submitted:", {to, tokenId}, hash);
-                this.element.querySelector('publisher-messages').replace(['success', 'Submitted approve: ' + hash]);
+                console.log("Submitted", {to, tokenId}, hash);
+                emit.call(this, "update", {hash});
+                this.element.querySelector('publisher-messages').replace(['success', 'Submitted approve, waiting for transaction: ' + hash]);
             } catch (err) {
                 console.error(err);
                 this.element.querySelector('publisher-messages').append(['error', err.toString()]);
-            } finally {
                 form.querySelector('input[type=submit]').disabled = false;
             }
         }
@@ -198,12 +211,12 @@ customElements.define('manage-publisher',
 
             try {
                 const {hash} = await this.methods.setApprovalForAll(to, value);
-                console.log("Submitted:", {to, value}, hash);
-                this.element.querySelector('publisher-messages').replace(['success', 'Submitted setApprovalForAll: ' + hash]);
+                console.log("Submitted", {to, value}, hash);
+                emit.call(this, "update", {hash});
+                this.element.querySelector('publisher-messages').replace(['success', 'Submitted setApprovalForAll, waiting for transaction: ' + hash]);
             } catch (err) {
                 console.error(err);
                 this.element.querySelector('publisher-messages').append(['error', err.toString()]);
-            } finally {
                 form.querySelector('input[type=submit]').disabled = false;
             }
         }

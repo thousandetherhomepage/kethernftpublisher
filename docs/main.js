@@ -12,7 +12,7 @@ import { Web3Modal } from "https://unpkg.com/@web3modal/html@2.6.1";
 import "./components.js";
 
 const { mainnet, sepolia } = WagmiCoreChains;
-const { configureChains, createConfig, writeContract, readContract, watchNetwork, getWalletClient, multicall} = WagmiCore;
+const { configureChains, createConfig, writeContract, waitForTransaction, watchNetwork, getWalletClient, multicall} = WagmiCore;
 
 const config = {
     walletConnectProjectID: "c2b10083c2b1bda11734bd4f48101899",
@@ -39,6 +39,8 @@ const config = {
         {"type":"function","name":"setApprovalForAll","constant":false,"payable":false,"inputs":[{"type":"address","name":"operator"},{"type":"bool","name":"approved"}],"outputs":[]},
     ],
 }
+
+const abiBalanceOf = [{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}];
 
 const chains = [mainnet, sepolia];
 const projectId = config.walletConnectProjectID;
@@ -86,7 +88,13 @@ async function onConnect() {
         walletClient,
     };
 
-    const [ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount] = (await multicall({
+    const [
+        ketherNFT,
+        ketherSortition,
+        publishTimeout,
+        publishFeeToken,
+        publishFeeAmount,
+    ] = (await multicall({
         contracts: [
             { ...contract, functionName: 'ketherNFT', },
             { ...contract, functionName: 'ketherSortition', },
@@ -96,18 +104,32 @@ async function onConnect() {
         ],
     })).map(r => r.result);
 
-    const settings = { chainId, ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount, ketherNFTPublisher: deploy.ketherNFTPublisherAddress };
-    console.log("Loaded contract settings:", settings);
+    const settings = {
+        chainId,
+        ketherNFT,
+        ketherSortition,
+        publishTimeout,
+        publishFeeToken,
+        publishFeeAmount,
+        ketherNFTPublisher: deploy.ketherNFTPublisherAddress,
+        sender: address,
+    };
 
     const ketherNFTabi = config.abi; // Technically wrong abi but this function overlaps
 
-    settings.isPublisherApproved = await readContract({
-        address: settings.ketherNFT,
-        abi: ketherNFTabi,
-        functionName: 'isApprovedForAll',
-        args: [address, ketherSortition],
-    });
-    console.log("Checked publisher approval: ", settings.isPublisherApproved);
+    [
+        settings.isPublisherApproved,
+        settings.senderBalance,
+        settings.isSortitionApproved
+    ] = (await multicall({
+        contracts: [
+            { address: settings.ketherNFT, abi: ketherNFTabi, functionName: 'isApprovedForAll', args: [address, ketherSortition]},
+            { address: settings.ketherNFT, abi: abiBalanceOf , functionName: 'balanceOf', args: [address] },
+            { ...contract, functionName: 'isApprovedForAll', args: [address, settings.ketherSortition]},
+        ]
+    })).map(r => r.result);
+
+    console.log("Loaded contract settings:", settings);
 
     const methods = {
         async approvePublisher() {
@@ -139,6 +161,15 @@ async function onConnect() {
     const component = document.querySelector('publisher-contract');
     component.methods = methods;
     component.update(settings);
+
+    component.addEventListener('update', (event) => {
+        waitForTransaction({
+            hash: event.detail.hash
+        }).then((r) => {
+            console.log("Transaction included, reloading:", r);
+            component.element.querySelector('publisher-messages').append(['Transaction included: ' + r.status]);
+        }).then(onConnect);
+    });
 }
 
 watchNetwork(onConnect);
