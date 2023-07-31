@@ -22,6 +22,11 @@ permission to publish.
    `KetherNFTPublisher.approve(address(KetherSortition), tokenId);`
 
 
+## Deployed
+
+- Mainnet: [0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9](https://etherscan.io/address/0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9)
+- Sepolia: [0xcba5846735a03ac02af69134Df1aB17f122DD2dD](https://sepolia.etherscan.io/address/0xcba5846735a03ac02af69134Df1aB17f122DD2dD)
+
 ## License
 
 MIT
