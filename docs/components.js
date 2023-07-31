@@ -121,7 +121,7 @@ customElements.define('manage-publisher',
                       <p>Approve KetherNFTPublisher contract on KetherNFT contract.</p>
                       <p><strong>Warning:</strong> Double check the wallet confirmation that you're approving the correct contract. Approving to a malicious contract can steal your Kether NFTs.</p>
                       <input type="submit" value="KetherNFT.setApprovalForAll(KetherNFTPublisher, true)" />
-                      <p>Current status: ${this.data.isPublisherApproved ? "✅" : "❎"}</p>
+                      <p>Current status: ${this.data.isPublisherApproved ? "✅" : "❌"}</p>
                   </form>
 
                   <h3>Step 2</h3>
@@ -133,6 +133,8 @@ customElements.define('manage-publisher',
                       <input type="text" name="tokenId" placeholder="42" size="4" />
                       <input type="submit" value="Approve">
                   </form>
+
+                  <em>or</em>
 
                   <form name="setApprovalForAll">
                       <p>Approve address for all owned tokens. Uncheck to remove approval.</p>
@@ -155,7 +157,7 @@ customElements.define('manage-publisher',
             form.querySelector('input[type=submit]').disabled = true;
 
             try {
-                const hash = await this.methods.approvePublisher();
+                const {hash} = await this.methods.approvePublisher();
                 console.log("Submitted:", hash);
                 this.element.querySelector('publisher-messages').replace(['success', 'Submitted approval for publisher: ' + hash]);
             } catch (err) {
@@ -175,7 +177,7 @@ customElements.define('manage-publisher',
             form.querySelector('input[type=submit]').disabled = true;
 
             try {
-                const hash = await this.methods.approve(to, tokenId);
+                const {hash} = await this.methods.approve(to, tokenId);
                 console.log("Submitted:", {to, tokenId}, hash);
                 this.element.querySelector('publisher-messages').replace(['success', 'Submitted approve: ' + hash]);
             } catch (err) {
@@ -195,7 +197,7 @@ customElements.define('manage-publisher',
             form.querySelector('input[type=submit]').disabled = true;
 
             try {
-                const hash = await this.methods.setApprovalForAll(to, value);
+                const {hash} = await this.methods.setApprovalForAll(to, value);
                 console.log("Submitted:", {to, value}, hash);
                 this.element.querySelector('publisher-messages').replace(['success', 'Submitted setApprovalForAll: ' + hash]);
             } catch (err) {
