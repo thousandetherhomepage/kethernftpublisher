@@ -12,7 +12,7 @@ import { Web3Modal } from "https://unpkg.com/@web3modal/html@2.6.1";
 import "./components.js";
 
 const { mainnet, sepolia } = WagmiCoreChains;
-const { configureChains, createConfig, writeContract, watchNetwork, getWalletClient, multicall} = WagmiCore;
+const { configureChains, createConfig, writeContract, readContract, watchNetwork, getWalletClient, multicall} = WagmiCore;
 
 const config = {
     walletConnectProjectID: "c2b10083c2b1bda11734bd4f48101899",
@@ -99,7 +99,25 @@ async function onConnect() {
     const settings = { chainId, ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount, ketherNFTPublisher: deploy.ketherNFTPublisherAddress };
     console.log("Loaded contract settings:", settings);
 
+    const ketherNFTabi = config.abi; // Technically wrong abi but this function overlaps
+
+    settings.isPublisherApproved = await readContract({
+        address: settings.ketherNFT,
+        abi: ketherNFTabi,
+        functionName: 'isApprovedForAll',
+        args: [address, ketherSortition],
+    });
+    console.log("Checked publisher approval: ", settings.isPublisherApproved);
+
     const methods = {
+        async approvePublisher() {
+            return await writeContract({
+                address: settings.ketherNFT,
+                abi: config.abi, // Technically wrong abi but this function overlaps
+                functionName: 'setApprovalForAll',
+                args: [ketherSortition, true],
+            })
+        },
         async approve(to, tokenId) {
             return await writeContract({
                 address: settings.ketherNFTPublisher,
