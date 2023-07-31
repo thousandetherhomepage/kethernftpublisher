@@ -12,7 +12,7 @@ import { Web3Modal } from "https://unpkg.com/@web3modal/html@2.6.1";
 import "./components.js";
 
 const { mainnet, sepolia } = WagmiCoreChains;
-const { configureChains, createConfig, watchAccount, watchNetwork, getWalletClient, multicall} = WagmiCore;
+const { configureChains, createConfig, writeContract, watchNetwork, getWalletClient, multicall} = WagmiCore;
 
 const config = {
     walletConnectProjectID: "c2b10083c2b1bda11734bd4f48101899",
@@ -99,7 +99,28 @@ async function onConnect() {
     const settings = { chainId, ketherNFT, ketherSortition, publishTimeout, publishFeeToken, publishFeeAmount, ketherNFTPublisher: deploy.ketherNFTPublisherAddress };
     console.log("Loaded contract settings:", settings);
 
-    document.querySelector('publisher-contract').update(settings);
+    const methods = {
+        async approve(to, tokenId) {
+            return await writeContract({
+                address: settings.ketherNFTPublisher,
+                abi: config.abi,
+                functionName: 'approve',
+                args: [to, tokenId],
+            })
+        },
+        async setApprovalForAll(to, value) {
+            return await writeContract({
+                address: settings.ketherNFTPublisher,
+                abi: config.abi,
+                functionName: 'setApprovalForAll',
+                args: [to, value],
+            })
+        }
+    }
+
+    const component = document.querySelector('publisher-contract');
+    component.methods = methods;
+    component.update(settings);
 }
 
 watchNetwork(onConnect);
