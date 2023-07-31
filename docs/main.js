@@ -19,7 +19,7 @@ const config = {
 
     deployed: {
         [mainnet.id]: {
-            ketherNFTPublisherAddress: "0xda5aba302810ab3f6a3f3e7f8ab0307c1f464bc9",
+            ketherNFTPublisherAddress: "0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9",
         },
         [sepolia.id]: {
             ketherNFTPublisherAddress: "0xcba5846735a03ac02af69134Df1aB17f122DD2dD",
