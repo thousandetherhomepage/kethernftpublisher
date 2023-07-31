@@ -48,7 +48,10 @@ customElements.define('publisher-contract',
         constructor() {
             super();
             this.element = this.attachShadow({ mode: 'open' });
-            this.element.innerHTML = "Waiting for wallet to connect...";
+            this.element.innerHTML = `<div>
+                <p>Waiting for wallet to connect...</p>
+                <w3m-core-button></w3m-core-button>
+            </div>`;
             this.settings = null;
             this.methods = {};
             this.render();

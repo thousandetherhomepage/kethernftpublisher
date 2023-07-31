@@ -53,7 +53,7 @@ const wagmiConfig = createConfig({
         new WagmiCoreConnectors.CoinbaseWalletConnector({
             chains,
             options: {
-                appName: "ThousandEtherHomepage Publish Delegate",
+                appName: "ThousandEtherHomepage Publisher Delegate",
             },
         }),
     ],
@@ -61,12 +61,7 @@ const wagmiConfig = createConfig({
 });
 
 const ethereumClient = new EthereumClient(wagmiConfig, chains);
-export const web3modal = new Web3Modal(
-    {
-        projectId,
-    },
-    ethereumClient
-);
+export const web3modal = new Web3Modal({ projectId }, ethereumClient);
 
 async function onConnect() {
     const walletClient = await getWalletClient();
