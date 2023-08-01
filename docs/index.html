@@ -20,8 +20,16 @@
 
   <section>
     <h2>
-      Delegate publishing rights to your ThousandEtherHomepage NFT.
+        Delegate publishing rights to your <a href="https://thousandetherhomepage.com">ThousandEtherHomepage NFT</a>.
     </h2>
+    <p>
+    🤔 <strong>How does it work?</strong> The KetherNFT wrapper is a standard ERC-721 which has the usual approval functionality: When we approve an address, we're giving them permission to transfer the NFT. Except in our version, the approved addresses also have permission to call the <code>publish</code> function which updates the contents of the ad.</p>
+    <p><a href="https://github.com/thousandetherhomepage/kethernftpublisher/blob/main/src/KetherNFTPublisher.sol">KetherNFTPublisher</a> is a frontend around KetherNFT that removes the ability to transfer the NFT (by not implementing it) and only gives permission to publish. To use this, we must approve on KetherNFT to give KetherNFTPublisher full permissions, then approve on KetherNFTPublisher to any other address will give only publishing permission.</p>
+    <p>👑 <strong>Bonus special features:</strong> If the KetherSortition contract is approved on KetherNFTPublisher, then the current magistrate gets permission to publish. </p>
+    <p>Additionally, the current magistrate can choose to activate a per-publish token fee that gets sent to the owner of the respective NFT, and a per-publish timeout to enforce a minimum time period per publish.</p>
+    <p>⛑️ <strong>Are there any risks?</strong> Yes, the biggest risk is being tricked into approved a malicious contract from KetherNFT, rather than the real KetherNFTPublisher contract (deployed at <a href="https://etherscan.io/address/publisher.kether.eth"><code>publisher.kether.eth</code></a> on mainnet, please double check your wallet confirmation). If we do that, then the malicious contract can transfer out all of the KetherNFTs we own.</p>
+    <p>Another risk is that KetherNFTPublisher could have a bug, but we believe we've designed it defensively in a way that the worst case bug could allow an attacker to publish to our NFT until we revoke approval to the contract. Please <a href="https://github.com/thousandetherhomepage/kethernftpublisher/blob/main/src/KetherNFTPublisher.sol">review the code</a> and <a href="https://discord.gg/PXVRw37bQ7">reach out if there are concerns</a>.
+    </p>
   </section>
 
   <section>

@@ -49,7 +49,7 @@ customElements.define('publisher-contract',
             super();
             this.element = this.attachShadow({ mode: 'open' });
             this.element.innerHTML = `<div>
-                <p>Waiting for wallet to connect...</p>
+                <p><strong>Sounds good? Connect your wallet to get started...</strong></p>
                 <w3m-core-button></w3m-core-button>
             </div>`;
             this.settings = null;

@@ -28,5 +28,11 @@ h2 {
 }
 
 section {
-    margin: 20px;
+    margin: 20px auto;
+    max-width: 800px;
+}
+
+a {
+    color: #42b983;
+    cursor: pointer;
 }
