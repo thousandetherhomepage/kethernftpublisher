@@ -22,7 +22,7 @@ const config = {
             ketherNFTPublisherAddress: "0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9",
         },
         [sepolia.id]: {
-            ketherNFTPublisherAddress: "0xcba5846735a03ac02af69134Df1aB17f122DD2dD",
+            ketherNFTPublisherAddress: "0x80E71c447e0f90Af42d84B4d7A957d60120136BD",
         }
     },
     abi: [
