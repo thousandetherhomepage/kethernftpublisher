@@ -98,11 +98,21 @@ contract KetherNFTPublisherTest is Test {
         publisher.publish(idx, "foo", "", "", false);
         assertEq(_getLink(idx), "foo");
 
+        // Not approved for other senders, even owner
+        vm.expectRevert(bytes(Errors.SenderNotApproved));
+        address rando = address(0xf00);
+        vm.prank(rando);
+        publisher.publish(idx, "bar", "", "", false);
+
+        // Owner is cool tho
+        vm.prank(sender);
+        publisher.publish(idx, "bar", "", "", false);
+
         // Not approved for other tokens
         idx = 1;
         vm.expectRevert(bytes(Errors.SenderNotApproved));
         vm.prank(other);
-        publisher.publish(idx, "bar", "", "", false);
+        publisher.publish(idx, "baz", "", "", false);
 
         // Remove approval
         vm.prank(sender);
@@ -110,7 +120,7 @@ contract KetherNFTPublisherTest is Test {
 
         vm.expectRevert(bytes(Errors.SenderNotApproved));
         vm.prank(other);
-        publisher.publish(idx, "bar", "", "", false);
+        publisher.publish(idx, "baz", "", "", false);
     }
 
     function test_PublishAsApprovedForAll() public {
