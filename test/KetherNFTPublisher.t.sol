@@ -78,26 +78,38 @@ contract KetherNFTPublisherTest is Test {
     }
 
     function test_PublishAsApproved() public {
+        address other = address(0xabcd);
+
         uint256 idx = 0;
         nft.publish(idx, "hi", "", "", false);
         assertEq(_getLink(idx), "hi");
 
-        vm.expectRevert(bytes(Errors.MustApprovePublisher));
+        nft.setApprovalForAll(address(publisher), true);
+
+        vm.expectRevert(bytes(Errors.SenderNotApproved));
+        vm.prank(other);
         publisher.publish(idx, "foo", "", "", false);
 
         // Approved for just idx=0
-        nft.approve(address(publisher), idx);
+        vm.prank(sender);
+        publisher.approve(other, idx);
+
+        vm.prank(other);
         publisher.publish(idx, "foo", "", "", false);
         assertEq(_getLink(idx), "foo");
 
         // Not approved for other tokens
         idx = 1;
-        vm.expectRevert(bytes(Errors.MustApprovePublisher));
+        vm.expectRevert(bytes(Errors.SenderNotApproved));
+        vm.prank(other);
         publisher.publish(idx, "bar", "", "", false);
 
         // Remove approval
-        nft.approve(address(0x0), idx);
-        vm.expectRevert(bytes(Errors.MustApprovePublisher));
+        vm.prank(sender);
+        publisher.approve(address(0x0), idx);
+
+        vm.expectRevert(bytes(Errors.SenderNotApproved));
+        vm.prank(other);
         publisher.publish(idx, "bar", "", "", false);
     }
 
