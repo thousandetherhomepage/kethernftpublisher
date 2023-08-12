@@ -136,7 +136,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
      */
     function isApprovedToPublish(address publisher, uint256 tokenId) public view returns (bool) {
         address owner = ketherNFT.ownerOf(tokenId); // Implicitly checks tokenId validity
-        address approved = ketherNFT.getApproved(tokenId);
+        address approved = getApproved(tokenId);
 
         // This contract must be either approved to publish for the token or approved for all tokens of the owner.
         if (!ketherNFT.isApprovedForAll(owner, address(this)) &&
@@ -148,7 +148,7 @@ contract KetherNFTPublisher is Context, IKetherNFTPublish {
         // Is the publisher the owner or approved?
         if (owner == publisher ||
             approved == publisher ||
-            ketherNFT.isApprovedForAll(owner, publisher)
+            isApprovedForAll(owner, publisher)
         ) {
             return true;
         }
