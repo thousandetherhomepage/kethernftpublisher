@@ -24,7 +24,7 @@ permission to publish.
 
 ## Deployed
 
-- Mainnet: [0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9](https://etherscan.io/address/0xDa5aba302810ab3F6A3f3E7f8aB0307c1f464Bc9)
+- Mainnet: [0x45C5508bA714bd27404c16f594967e998Afc6B60](https://etherscan.io/address/0x45C5508bA714bd27404c16f594967e998Afc6B60)
 - Sepolia: [0x32EF068FbC48A6eC0e4648E52370FFac02287c3e](https://sepolia.etherscan.io/address/0x32EF068FbC48A6eC0e4648E52370FFac02287c3e)
 
 ## License
