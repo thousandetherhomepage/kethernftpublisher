@@ -118,7 +118,7 @@ async function onConnect() {
         settings.isSortitionApproved
     ] = (await multicall({
         contracts: [
-            { address: settings.ketherNFT, abi: ketherNFTabi, functionName: 'isApprovedForAll', args: [address, ketherSortition]},
+            { address: settings.ketherNFT, abi: ketherNFTabi, functionName: 'isApprovedForAll', args: [address, settings.ketherNFTPublisher]},
             { address: settings.ketherNFT, abi: abiBalanceOf , functionName: 'balanceOf', args: [address] },
             { ...contract, functionName: 'isApprovedForAll', args: [address, settings.ketherSortition]},
         ]
@@ -132,7 +132,7 @@ async function onConnect() {
                 address: settings.ketherNFT,
                 abi: config.abi, // Technically wrong abi but this function overlaps
                 functionName: 'setApprovalForAll',
-                args: [deploy.ketherNFTPublisherAddress, true],
+                args: [settings.ketherNFTPublisher, true],
             })
         },
         async approve(to, tokenId) {
