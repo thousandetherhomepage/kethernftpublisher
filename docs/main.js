@@ -132,7 +132,7 @@ async function onConnect() {
                 address: settings.ketherNFT,
                 abi: config.abi, // Technically wrong abi but this function overlaps
                 functionName: 'setApprovalForAll',
-                args: [ketherSortition, true],
+                args: [deploy.ketherNFTPublisherAddress, true],
             })
         },
         async approve(to, tokenId) {
